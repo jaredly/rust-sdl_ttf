@@ -1,13 +1,7 @@
-#[link(name = "sdl_ttf",
-       vers = "0.1",
-       uuid = "1d776704-431f-4d5b-9361-b27958535321",
-       url = "http://github.com/sfackler/rust-sdl_ttf")];
-
-#[comment="SDL_ttf bindings"];
-#[license="MIT"];
+#[crate_id="github.com/sfackler/rust-sdl_ttf#sdl_ttf:0.0"];
 #[crate_type="lib"];
 
-extern mod sdl;
+extern crate sdl;
 
 use std::num::FromPrimitive;
 use std::libc::{c_int, c_long};
@@ -34,7 +28,7 @@ mod ffi {
     pub static TTF_HINTING_MONO: TTF_Hinting = 2;
     pub static TTF_HINTING_NONE: TTF_Hinting = 3;
 
-    #[link_args = "-lSDL_ttf"]
+    #[link(name="SDL_ttf")]
     extern "C" {
         pub fn TTF_Init() -> c_int;
         pub fn TTF_WasInit() -> c_int;
@@ -125,16 +119,20 @@ impl Font {
             StrikethroughStyle
         ];
 
-        do flags.iter().filter_map |&flag| {
-            if bitflags & (flag as ffi::TTF_StyleFlag) != 0 { Some(flag) }
-            else {None}
-        }.collect()
+        flags.iter().filter_map(|&flag| {
+            if bitflags & (flag as ffi::TTF_StyleFlag) != 0 {
+                Some(flag)
+            }
+            else {
+                None
+            }
+        }).collect()
     }
 
     pub fn set_style(&mut self, flags: &[FontStyle]) {
-        let bitflags = do flags.iter().fold(0) |bitflags, &flag| {
+        let bitflags = flags.iter().fold(0, |bitflags, &flag| {
             bitflags | flag as ffi::TTF_StyleFlag
-        };
+        });
 
         unsafe {
             ffi::TTF_SetFontStyle(self.raw, bitflags);
@@ -266,14 +264,14 @@ impl Font {
         let mut w: c_int = 0;
         let mut h: c_int = 0;
 
-        do text.with_c_str |c_text| {
+        text.with_c_str(|c_text| {
             unsafe {
                 match ffi::TTF_SizeUTF8(self.raw, c_text, &mut w, &mut h) {
                     0 => Ok((w as int, h as int)),
                     _ => Err(sdl::get_error())
                 }
             }
-        }
+        })
     }
 }
 
@@ -305,7 +303,7 @@ pub fn quit() {
 }
 
 pub fn open_font(file: &str, ptsize: int) -> Result<~Font, ~str> {
-    do file.with_c_str |c_str| {
+    file.with_c_str(|c_str| {
         unsafe {
             let ptr = ffi::TTF_OpenFont(c_str, ptsize as c_int);
             if ptr.is_null() {
@@ -314,12 +312,12 @@ pub fn open_font(file: &str, ptsize: int) -> Result<~Font, ~str> {
                 Ok(~Font {raw: ptr})
             }
         }
-    }
+    })
 }
 
 pub fn open_font_index(file: &str, ptsize: int, index: int)
         -> Result<~Font, ~str> {
-    do file.with_c_str |c_str| {
+    file.with_c_str(|c_str| {
         let ptr = unsafe {
             ffi::TTF_OpenFontIndex(c_str, ptsize as c_int, index as c_long)
         };
@@ -329,12 +327,12 @@ pub fn open_font_index(file: &str, ptsize: int, index: int)
         } else {
             Ok(~Font {raw: ptr})
         }
-    }
+    })
 }
 
 pub fn render_solid(font: &Font, text: &str, fg: Color)
         -> Result<~Surface, ~str> {
-    do text.with_c_str |c_text| {
+    text.with_c_str(|c_text| {
         let ptr = unsafe {
             ffi::TTF_RenderUTF8_Solid(font.raw, c_text, fg.to_struct())
         };
@@ -344,12 +342,12 @@ pub fn render_solid(font: &Font, text: &str, fg: Color)
         } else {
             Ok(~Surface {raw: ptr, owned: true})
         }
-    }
+    })
 }
 
 pub fn render_shaded(font: &Font, text: &str, fg: Color, bg: Color)
         -> Result<~Surface, ~str> {
-    do text.with_c_str |c_text| {
+    text.with_c_str(|c_text| {
         let ptr = unsafe {
             ffi::TTF_RenderUTF8_Shaded(font.raw, c_text, fg.to_struct(),
                 bg.to_struct())
@@ -360,12 +358,12 @@ pub fn render_shaded(font: &Font, text: &str, fg: Color, bg: Color)
         } else {
             Ok(~Surface {raw: ptr, owned: true})
         }
-    }
+    })
 }
 
 pub fn render_blended(font: &Font, text: &str, fg: Color)
         -> Result<~Surface, ~str> {
-    do text.with_c_str |c_text| {
+    text.with_c_str(|c_text| {
         let ptr = unsafe {
             ffi::TTF_RenderUTF8_Blended(font.raw, c_text, fg.to_struct())
         };
@@ -375,5 +373,5 @@ pub fn render_blended(font: &Font, text: &str, fg: Color)
         } else {
             Ok(~Surface {raw: ptr, owned: true})
         }
-    }
+    })
 }
