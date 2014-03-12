@@ -53,7 +53,6 @@ mod ffi {
         pub fn TTF_FontFaces(font: *TTF_Font) -> c_long;
         pub fn TTF_FontFaceIsFixedWidth(font: *TTF_Font) -> c_int;
         pub fn TTF_FontFaceFamilyName(font: *TTF_Font) -> *c_char;
-        pub fn TTF_FontGlyphIsProvided(font: *TTF_Font, glyph: u16) -> c_int;
         pub fn TTF_GlyphMetrics(font: *TTF_Font, glyph: u16, minx: *mut c_int,
             maxx: *mut c_int, miny: *mut c_int, maxy: *mut c_int,
             advance: *mut c_int) -> c_int;
@@ -219,20 +218,6 @@ impl Font {
                 None
             } else {
                 Some(str::raw::from_c_str(ptr))
-            }
-        }
-    }
-
-    pub fn glyph_is_provided(&self, glyph: char) -> Option<int> {
-        let ch = match char_to_utf16(glyph) {
-            Some(ch) => ch,
-            None => return None
-        };
-
-        unsafe {
-            match ffi::TTF_FontGlyphIsProvided(self.raw, ch) {
-                0 => None,
-                ch => Some(ch as int)
             }
         }
     }
